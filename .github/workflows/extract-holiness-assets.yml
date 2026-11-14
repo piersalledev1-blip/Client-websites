@@ -1,0 +1,40 @@
+name: Extract Holiness Plumbing assets
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/extract-holiness-assets.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Extract original archive without recompression
+        run: |
+          test -f "Holiness Plumbing/Holiness remains.zip"
+          unzip -o "Holiness Plumbing/Holiness remains.zip" -d "Holiness Plumbing"
+          echo "Extracted files:"
+          find "Holiness Plumbing/assets" -type f | sort
+          echo "File count:"
+          find "Holiness Plumbing/assets" -type f | wc -l
+
+      - name: Commit extracted assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "Holiness Plumbing/assets"
+          if git diff --cached --quiet; then
+            echo "No extracted asset changes to commit."
+          else
+            git commit -m "Extract Holiness Plumbing website assets"
+            git push
+          fi
